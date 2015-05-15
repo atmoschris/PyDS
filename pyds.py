@@ -3,7 +3,7 @@ import numpy as np
 
 class Models:
     '''
-    Collection of dynamical models.
+    Collection of dynamical systems.
     '''
 
     def Lorenz63(

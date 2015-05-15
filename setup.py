@@ -4,7 +4,7 @@ setup(
     name = 'pyds',
     version=0.1,
     description = 'PyDS: Dynamical Systems Running with Python',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     author='Feng Zhu',
     author_email='feng.zhu@wisc.edu',
     url = 'https://github.com/lyricorpse/PyDS',

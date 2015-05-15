@@ -1,2 +1,6 @@
 *.pyc
 .ropeproject/*
+build/*
+dist/*
+pyds.egg-info/*
+.ipynb*
