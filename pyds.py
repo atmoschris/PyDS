@@ -153,17 +153,17 @@ class Model:
                 k1_y = dt * Py(x[i], y[i], z[i], r)
                 k1_z = dt * Pz(x[i], y[i], z[i], b)
 
-                k2_x = dt * Px(x[i]+k1_x/2, y[i], sigma)
-                k2_y = dt * Py(x[i], y[i]+k1_y/2, z[i], r)
-                k2_z = dt * Pz(x[i], y[i], z[i]+k1_z/2, b)
+                k2_x = dt * Px(x[i]+k1_x/2, y[i]+k1_y/2, sigma)
+                k2_y = dt * Py(x[i]+k1_x/2, y[i]+k1_y/2, z[i]+k1_z/2, r)
+                k2_z = dt * Pz(x[i]+k1_x/2, y[i]+k1_y/2, z[i]+k1_z/2, b)
 
-                k3_x = dt * Px(x[i]+k2_x/2, y[i], sigma)
-                k3_y = dt * Py(x[i], y[i]+k2_y/2, z[i], r)
-                k3_z = dt * Pz(x[i], y[i], z[i]+k2_z/2, b)
+                k3_x = dt * Px(x[i]+k2_x/2, y[i]+k2_y/2, sigma)
+                k3_y = dt * Py(x[i]+k2_x/2, y[i]+k2_y/2, z[i]+k2_z/2, r)
+                k3_z = dt * Pz(x[i]+k2_x/2, y[i]+k2_y/2, z[i]+k2_z/2, b)
 
-                k4_x = dt * Px(x[i]+k3_x/2, y[i], sigma)
-                k4_y = dt * Py(x[i], y[i]+k3_y/2, z[i], r)
-                k4_z = dt * Pz(x[i], y[i], z[i]+k3_z/2, b)
+                k4_x = dt * Px(x[i]+k3_x, y[i]+k3_y, sigma)
+                k4_y = dt * Py(x[i]+k3_x, y[i]+k3_y, z[i]+k3_z, r)
+                k4_z = dt * Pz(x[i]+k3_x, y[i]+k3_y, z[i]+k3_z, b)
 
                 x[i+1] = x[i] + (k1_x+k4_x)/6 + (k2_x+k3_x)/3
                 y[i+1] = y[i] + (k1_y+k4_y)/6 + (k2_y+k3_y)/3
