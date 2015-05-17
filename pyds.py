@@ -128,9 +128,9 @@ class Model:
             + 1 to nt: nt integration results
             + nt+1: the boundary for calculation of nt
         '''
-        x = np.empty([nt+2])
-        y = np.empty([nt+2])
-        z = np.empty([nt+2])
+        x = np.empty([nt+1])
+        y = np.empty([nt+1])
+        z = np.empty([nt+1])
 
         i = 0
         x[i] = x0
@@ -193,13 +193,13 @@ class Model:
                 Fy = Py(x[i+1], y[i+1], z[i+1], r)
                 Fz = Pz(x[i+1], y[i+1], z[i+1], b)
 
-                x[i+2] = NumericalMehtods.forward_int(x[i+1], Fx, dt)
-                y[i+2] = NumericalMehtods.forward_int(y[i+1], Fy, dt)
-                z[i+2] = NumericalMehtods.forward_int(z[i+1], Fz, dt)
+                x_tmp = NumericalMehtods.forward_int(x[i+1], Fx, dt)
+                y_tmp = NumericalMehtods.forward_int(y[i+1], Fy, dt)
+                z_tmp = NumericalMehtods.forward_int(z[i+1], Fz, dt)
 
-                x[i+1] = 1/2 * (x[i]+x[i+2])
-                y[i+1] = 1/2 * (y[i]+y[i+2])
-                z[i+1] = 1/2 * (z[i]+z[i+2])
+                x[i+1] = 1/2 * (x[i]+x_tmp)
+                y[i+1] = 1/2 * (y[i]+y_tmp)
+                z[i+1] = 1/2 * (z[i]+z_tmp)
 
                 if prt is True:
                     print(
@@ -222,13 +222,13 @@ class Plot:
         size = len(data)
         x = np.arange(size)
         plt.axhline(y=std_y)
-        plt.plot(x, data[:-1])
+        plt.plot(x, data)
         plt.show()
 
     def trajectory_2d(x, y, std_x=0, std_y=0):
         plt.axvline(x=std_x)
         plt.axhline(y=std_y)
-        plt.plot(x[:-1], y[:-1])
+        plt.plot(x, y)
         plt.show()
 
     def trajectory_3d(x, y, z, animation=False, ani_interval=1, lag=1e-20):
@@ -244,7 +244,7 @@ class Plot:
         ax.set_zlabel("Z")
 
         if animation is False:
-            ax.plot(x[:-1], y[:-1], z[:-1])
+            ax.plot(x, y, z)
             plt.show()
         else:
             size = len(x)
