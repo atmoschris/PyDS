@@ -15,9 +15,6 @@ To use this program, you need to install Python with a version of 3.
 The development environment is [Anaconda Scientific Python Distribution](http://continuum.io)
 with a version of Anaconda 2.2.0 (Python 3.4.3).
 
-Some third-party modules are required:
-+ numpy
-
 
 ## About
 
