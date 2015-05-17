@@ -18,6 +18,6 @@ with a version of Anaconda 2.2.0 (Python 3.4.3).
 
 ## About
 
-Author: [Feng Zhu](feng.zhu@wisc.edu)
+Author: [Feng Zhu](mailto:feng.zhu@wisc.edu)
 
 License: BSD
