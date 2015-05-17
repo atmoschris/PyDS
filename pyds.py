@@ -153,21 +153,21 @@ class Model:
                 k1_y = dt * Py(x[i], y[i], z[i], r)
                 k1_z = dt * Pz(x[i], y[i], z[i], b)
 
-                k2_x = dt * Px(x[i]+k1_x/2, y[i]+k1_y/2, sigma)
-                k2_y = dt * Py(x[i]+k1_x/2, y[i]+k1_y/2, z[i]+k1_z/2, r)
-                k2_z = dt * Pz(x[i]+k1_x/2, y[i]+k1_y/2, z[i]+k1_z/2, b)
+                k2_x = dt * Px(x[i]+k1_x/2.0, y[i]+k1_y/2.0, sigma)
+                k2_y = dt * Py(x[i]+k1_x/2.0, y[i]+k1_y/2.0, z[i]+k1_z/2.0, r)
+                k2_z = dt * Pz(x[i]+k1_x/2.0, y[i]+k1_y/2.0, z[i]+k1_z/2.0, b)
 
-                k3_x = dt * Px(x[i]+k2_x/2, y[i]+k2_y/2, sigma)
-                k3_y = dt * Py(x[i]+k2_x/2, y[i]+k2_y/2, z[i]+k2_z/2, r)
-                k3_z = dt * Pz(x[i]+k2_x/2, y[i]+k2_y/2, z[i]+k2_z/2, b)
+                k3_x = dt * Px(x[i]+k2_x/2.0, y[i]+k2_y/2.0, sigma)
+                k3_y = dt * Py(x[i]+k2_x/2.0, y[i]+k2_y/2.0, z[i]+k2_z/2.0, r)
+                k3_z = dt * Pz(x[i]+k2_x/2.0, y[i]+k2_y/2.0, z[i]+k2_z/2.0, b)
 
                 k4_x = dt * Px(x[i]+k3_x, y[i]+k3_y, sigma)
                 k4_y = dt * Py(x[i]+k3_x, y[i]+k3_y, z[i]+k3_z, r)
                 k4_z = dt * Pz(x[i]+k3_x, y[i]+k3_y, z[i]+k3_z, b)
 
-                x[i+1] = x[i] + (k1_x+k4_x)/6 + (k2_x+k3_x)/3
-                y[i+1] = y[i] + (k1_y+k4_y)/6 + (k2_y+k3_y)/3
-                z[i+1] = z[i] + (k1_z+k4_z)/6 + (k2_z+k3_z)/3
+                x[i+1] = x[i] + (k1_x+k4_x)/6.0 + (k2_x+k3_x)/3.0
+                y[i+1] = y[i] + (k1_y+k4_y)/6.0 + (k2_y+k3_y)/3.0
+                z[i+1] = z[i] + (k1_z+k4_z)/6.0 + (k2_z+k3_z)/3.0
 
                 if prt is True:
                     print(
@@ -222,16 +222,16 @@ class Plot:
         size = len(data)
         x = np.arange(size)
         plt.axhline(y=std_y)
-        plt.plot(x, data)
+        plt.plot(x, data[:-1])
         plt.show()
 
     def trajectory_2d(x, y, std_x=0, std_y=0):
         plt.axvline(x=std_x)
         plt.axhline(y=std_y)
-        plt.plot(x, y)
+        plt.plot(x[:-1], y[:-1])
         plt.show()
 
-    def trajectory_3d(x, y, z, animation=False, ani_interval=1):
+    def trajectory_3d(x, y, z, animation=False, ani_interval=1, lag=1e-20):
         '''
         NOTE: Animation should be used without inline displaying.
         '''
@@ -244,11 +244,10 @@ class Plot:
         ax.set_zlabel("Z")
 
         if animation is False:
-            ax.plot(x, y, z)
+            ax.plot(x[:-1], y[:-1], z[:-1])
             plt.show()
         else:
             size = len(x)
-
             ax.set_xlim([-20, 20])
             ax.set_ylim([-30, 30])
             ax.set_zlim([0, 50])
@@ -263,4 +262,4 @@ class Plot:
                 if oldcol is not None:
                     ax.collections.remove(oldcol)
 
-                plt.pause(1e-20)
+                plt.pause(lag)
