@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-class NumericalMehtods:
+class NumericalMehtod:
     '''
     Numerical methods such as temperal integration.
     '''
@@ -49,12 +49,12 @@ class NumericalMehtods:
     def RK4(x0, F, dt):
         '''
         Equation:
-            x' = F,
-            k1 = dt * F(x(n))
-            k2 = dt * F(x(n)+k1/2)
-            k3 = dt * F(x(n)+k2/2)
-            k4 = dt * F(x(n)+k3)
-            x(n+1) = x(n) + k1/6 + k2/3 + k3/3 + k4/6
+            x' = F(x, t),
+            k1 = F(x(n), t(n))
+            k2 = F(x(n)+k1/2*dt, t(n)+dt/2)
+            k3 = F(x(n)+k2/2*dt, t(n)+dt/2)
+            k4 = F(x(n)+k3*dt, t(n)+dt)
+            x(n+1) = x(n) + (k1 + 2*k2 + 2*k3 + k4)/6
         '''
         pass
 
@@ -91,8 +91,8 @@ class Model:
 
         Reference:
             Lorenz, E. N., 1963: Deterministic Nonperiodic Flow.
-            J. Atmos. Sci., 20, 130–141.
-            doi:10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2.
+                J. Atmos. Sci., 20, 130–141.
+                doi:10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2.
 
         '''
 
@@ -108,19 +108,20 @@ class Model:
             P = x*y - b*z
             return P
 
-        print('')
-        print('>>>>>> Lorenz63 ...')
-        print('')
-        print('       sigma:', sigma)
-        print('           r:', r)
-        print('           b:', b)
-        print('(x0, y0, z0):', (x0, y0, z0))
-        print('          dt:', dt)
-        print('          nt:', nt)
-        print('  int_method:', int_method)
-        print('')
-        print('...................')
-        print('')
+        if prt is True:
+            print('')
+            print('>>>>>> Lorenz63 ...')
+            print('')
+            print('       sigma:', sigma)
+            print('           r:', r)
+            print('           b:', b)
+            print('(x0, y0, z0):', (x0, y0, z0))
+            print('          dt:', dt)
+            print('          nt:', nt)
+            print('  int_method:', int_method)
+            print('')
+            print('...................')
+            print('')
 
         '''
         Init arrays with size of nt+2 (index from 0 to nt+1).
@@ -177,6 +178,61 @@ class Model:
                         '{0:20.10f}'.format(z[i+1])
                     )
 
+        elif int_method == 'RK2':
+
+            for i in np.arange(nt):
+
+                k1_x = dt * Px(x[i], y[i], sigma)
+                k1_y = dt * Py(x[i], y[i], z[i], r)
+                k1_z = dt * Pz(x[i], y[i], z[i], b)
+
+                k2_x = dt * Px(x[i]+k1_x/2.0, y[i]+k1_y/2.0, sigma)
+                k2_y = dt * Py(x[i]+k1_x/2.0, y[i]+k1_y/2.0, z[i]+k1_z/2.0, r)
+                k2_z = dt * Pz(x[i]+k1_x/2.0, y[i]+k1_y/2.0, z[i]+k1_z/2.0, b)
+
+                x[i+1] = x[i] + k2_x
+                y[i+1] = y[i] + k2_y
+                z[i+1] = z[i] + k2_z
+
+                if prt is True:
+                    print(
+                        '{0:5d}'.format(i+1),
+                        '{0:20.10f}'.format(x[i+1]),
+                        '{0:20.10f}'.format(y[i+1]),
+                        '{0:20.10f}'.format(z[i+1])
+                    )
+
+        elif int_method == 'reverse_double_approx':
+            for i in np.arange(nt):
+
+                Fx = Px(x[i], y[i], sigma)
+                Fy = Py(x[i], y[i], z[i], r)
+                Fz = Pz(x[i], y[i], z[i], b)
+
+                x[i+1] = x[i] - Fx*dt
+                y[i+1] = y[i] - Fy*dt
+                z[i+1] = z[i] - Fz*dt
+
+                Fx = Px(x[i+1], y[i+1], sigma)
+                Fy = Py(x[i+1], y[i+1], z[i+1], r)
+                Fz = Pz(x[i+1], y[i+1], z[i+1], b)
+
+                x_tmp = x[i+1] - Fx*dt
+                y_tmp = y[i+1] - Fy*dt
+                z_tmp = z[i+1] - Fz*dt
+
+                x[i+1] = 1/2 * (x[i]+x_tmp)
+                y[i+1] = 1/2 * (y[i]+y_tmp)
+                z[i+1] = 1/2 * (z[i]+z_tmp)
+
+                if prt is True:
+                    print(
+                        '{0:5d}'.format(i+1),
+                        '{0:20.10f}'.format(x[i+1]),
+                        '{0:20.10f}'.format(y[i+1]),
+                        '{0:20.10f}'.format(z[i+1])
+                    )
+
         else:
 
             for i in np.arange(nt):
@@ -185,17 +241,17 @@ class Model:
                 Fy = Py(x[i], y[i], z[i], r)
                 Fz = Pz(x[i], y[i], z[i], b)
 
-                x[i+1] = NumericalMehtods.forward_int(x[i], Fx, dt)
-                y[i+1] = NumericalMehtods.forward_int(y[i], Fy, dt)
-                z[i+1] = NumericalMehtods.forward_int(z[i], Fz, dt)
+                x[i+1] = x[i] + Fx*dt
+                y[i+1] = y[i] + Fy*dt
+                z[i+1] = z[i] + Fz*dt
 
                 Fx = Px(x[i+1], y[i+1], sigma)
                 Fy = Py(x[i+1], y[i+1], z[i+1], r)
                 Fz = Pz(x[i+1], y[i+1], z[i+1], b)
 
-                x_tmp = NumericalMehtods.forward_int(x[i+1], Fx, dt)
-                y_tmp = NumericalMehtods.forward_int(y[i+1], Fy, dt)
-                z_tmp = NumericalMehtods.forward_int(z[i+1], Fz, dt)
+                x_tmp = x[i+1] + Fx*dt
+                y_tmp = y[i+1] + Fy*dt
+                z_tmp = z[i+1] + Fz*dt
 
                 x[i+1] = 1/2 * (x[i]+x_tmp)
                 y[i+1] = 1/2 * (y[i]+y_tmp)
@@ -210,6 +266,115 @@ class Model:
                     )
 
         return x, y, z
+
+    def Lorenz63_odeint(initial, t):
+        x = initial[0]
+        y = initial[1]
+        z = initial[2]
+        sigma = 10
+        rho = 28
+        beta = 8.0/3
+        x_dot = sigma * (y - x)
+        y_dot = x * (rho - z) - y
+        z_dot = x * y - beta * z
+        return [x_dot, y_dot, z_dot]
+
+    def Lorenz96(
+        initial,
+        F=8,
+        dt=0.05, nt=10,
+        int_method='RK4',
+        prt=False, show_index=0
+    ):
+        '''
+        Equations:
+            X(j)' = [X(j+1)-X(j-2)]X(j-1) - X(j) + F
+
+        Parameters:
+            + initial: array, initial condition
+            + F: forcing
+            + j: index of grid points that  create a loop
+            + dt: time increment every step (delta t)
+            + nt: time steps
+            + int_method: the integration method used to run this model
+                - RK4: 4th order Runge-Kutta [default]
+
+            NOTE: The defaults are documented in Lorenz (1997).
+
+        References:
+
+            Edward N. Lorenz, 1996: Predictability – A problem partly solved
+                Seminar on Predictability, Vol. I, ECMWF,
+                book Predictability of Weather and Climate, Chapter 3, 40-58.
+                doi: http://dx.doi.org/10.1017/CBO9780511617652.004
+
+            Edward N. Lorenz and Kerry A. Emanuel, 1998:
+                Optimal Sites for Supplementary Weather Observations:
+                Simulation with a Small Model. J. Atmos. Sci., 55, 399-414.
+                doi: http://dx.doi.org/10.1175/
+                1520-0469(1998)055<0399:OSFSWO>2.0.CO;2
+
+        '''
+        if prt is True:
+            print('')
+            print('>>>>>> Lorenz96 ...')
+            print('')
+            print('           F:', F)
+            print('     initial:', initial)
+            print('          dt:', dt)
+            print('          nt:', nt)
+            print('  int_method:', int_method)
+            print('')
+            print('...................')
+            print('')
+
+        def Eqn(field, j, F):
+            N = np.size(field)
+            if j+1 >= N:
+                result = (field[j+1-N]-field[j-2]) * field[j-1] - field[j] + F
+            else:
+                result = (field[j+1]-field[j-2]) * field[j-1] - field[j] + F
+            return result
+
+        N = np.size(initial)  # K equations, number of grid points
+        old_values = np.copy(initial)
+        new_values = np.copy(initial)
+        k1 = np.empty(N)
+        k2 = np.empty(N)
+        k3 = np.empty(N)
+        k4 = np.empty(N)
+        results = np.ndarray(shape=(nt+1, N))
+        results[0, :] = initial
+
+        for i in np.arange(nt):
+
+            for j in np.arange(N):
+                k1[j] = Eqn(old_values, j, F)
+                new_values[j] = old_values[j] + k1[j]/2*dt
+
+            for j in np.arange(N):
+                k2[j] = Eqn(new_values, j, F)
+                new_values[j] = old_values[j] + k2[j]/2*dt
+
+            for j in np.arange(N):
+                k3[j] = Eqn(new_values, j, F)
+                new_values[j] = old_values[j] + k3[j]*dt
+
+            for j in np.arange(N):
+                k4[j] = Eqn(new_values, j, F)
+
+            new_values = old_values + (k1+2*k2+2*k3+k4)/6*dt
+            old_values = np.copy(new_values)
+
+            results[i+1, :] = new_values
+
+            if prt is True:
+                print(
+                    '{0:5d}'.format(i),
+                    '{0:20.10f}'.format(new_values[show_index])
+                )
+
+        return results
 
 
 class Plot:
@@ -263,3 +428,44 @@ class Plot:
                     ax.collections.remove(oldcol)
 
                 plt.pause(lag)
+
+    def field_plot_with_time(
+        data,
+        time_interval=1,
+        std_y=0, range_y=1,
+        fig_size=(12, 1)
+    ):
+        '''
+        For Lorenz96.
+        data is a 2-D array.
+        '''
+        dims = np.shape(data)
+        nt = dims[0]
+        x = np.arange(dims[1])
+        plot_num = np.arange(0, nt, time_interval)
+        nplot = np.size(plot_num)
+        print('Time slots:', plot_num)
+
+        fig, axs = plt.subplots(
+            nplot, 1, figsize=(fig_size[0], fig_size[1]*nplot),
+            facecolor='w', edgecolor='k'
+        )
+
+        plt.subplots_adjust(hspace=0, wspace=.5)
+
+        axs = axs.ravel()
+
+        for i in np.arange(nplot):
+            axs[i].plot(x, data[plot_num[i], :])
+
+        for ax in axs:
+            ax.set_ylim([std_y-range_y, std_y+range_y])
+            ax.axhline(y=std_y, color='black')
+            plt.setp(ax.get_xticklabels(), visible=False)
+            plt.setp(ax.get_yticklabels(), visible=False)
+
+        axs[nplot//2].set_ylabel("time (every 12 hr)")
+        axs[-1].set_xlabel("site number")
+        plt.setp(axs[-1].get_xticklabels(), visible=True)
+
+        plt.show()
