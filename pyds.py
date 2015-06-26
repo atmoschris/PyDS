@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import sys
 
 
 class NumericalMehtod:
@@ -179,6 +180,7 @@ class Model:
                     )
 
         elif int_method == 'RK2':
+            # Heun Method with a Single Corrector (a2 = 1/2)
 
             for i in np.arange(nt):
 
@@ -339,40 +341,71 @@ class Model:
         N = np.size(initial)  # K equations, number of grid points
         old_values = np.copy(initial)
         new_values = np.copy(initial)
-        k1 = np.empty(N)
-        k2 = np.empty(N)
-        k3 = np.empty(N)
-        k4 = np.empty(N)
         results = np.ndarray(shape=(nt+1, N))
         results[0, :] = initial
 
-        for i in np.arange(nt):
+        if int_method == 'RK2':
 
-            for j in np.arange(N):
-                k1[j] = Eqn(old_values, j, F)
-                new_values[j] = old_values[j] + k1[j]/2*dt
+            # Heun Method with a Single Corrector (a2 = 1/2)
 
-            for j in np.arange(N):
-                k2[j] = Eqn(new_values, j, F)
-                new_values[j] = old_values[j] + k2[j]/2*dt
+            k1 = np.empty(N)
+            k2 = np.empty(N)
 
-            for j in np.arange(N):
-                k3[j] = Eqn(new_values, j, F)
-                new_values[j] = old_values[j] + k3[j]*dt
+            for i in np.arange(nt):
 
-            for j in np.arange(N):
-                k4[j] = Eqn(new_values, j, F)
+                for j in np.arange(N):
+                    k1[j] = Eqn(old_values, j, F)
+                    new_values[j] = old_values[j] + k1[j]/2*dt
 
-            new_values = old_values + (k1+2*k2+2*k3+k4)/6*dt
-            old_values = np.copy(new_values)
+                for j in np.arange(N):
+                    k2[j] = Eqn(new_values, j, F)
+                    new_values[j] = old_values[j] + k2[j]/2*dt
 
-            results[i+1, :] = new_values
+                new_values = old_values + k2*dt
+                old_values = np.copy(new_values)
 
-            if prt is True:
-                print(
-                    '{0:5d}'.format(i),
-                    '{0:20.10f}'.format(new_values[show_index])
-                )
+                results[i+1, :] = new_values
+
+                if prt is True:
+                    print(
+                        '{0:5d}'.format(i),
+                        '{0:20.10f}'.format(new_values[show_index])
+                    )
+
+        else:
+
+            k1 = np.empty(N)
+            k2 = np.empty(N)
+            k3 = np.empty(N)
+            k4 = np.empty(N)
+
+            for i in np.arange(nt):
+
+                for j in np.arange(N):
+                    k1[j] = Eqn(old_values, j, F)
+                    new_values[j] = old_values[j] + k1[j]/2*dt
+
+                for j in np.arange(N):
+                    k2[j] = Eqn(new_values, j, F)
+                    new_values[j] = old_values[j] + k2[j]/2*dt
+
+                for j in np.arange(N):
+                    k3[j] = Eqn(new_values, j, F)
+                    new_values[j] = old_values[j] + k3[j]*dt
+
+                for j in np.arange(N):
+                    k4[j] = Eqn(new_values, j, F)
+
+                new_values = old_values + (k1+2*k2+2*k3+k4)/6*dt
+                old_values = np.copy(new_values)
+
+                results[i+1, :] = np.copy(new_values)
+
+                if prt is True:
+                    print(
+                        '{0:5d}'.format(i),
+                        '{0:20.10f}'.format(new_values[show_index])
+                    )
 
         return results
 
@@ -384,15 +417,26 @@ class Plot:
     '''
 
     def trajectory_1d(data, std_y=0):
-        size = len(data)
-        x = np.arange(size)
-        plt.axhline(y=std_y)
-        plt.plot(x, data)
+        if type(data) is tuple:
+            dims = np.shape(data[0])
+        else:
+            dims = np.shape(data)
+
+        x = np.arange(dims[0])
+
+        plt.axhline(y=std_y, color='black')
+
+        if type(data) is tuple:
+            for d in data:
+                plt.plot(x, d)
+        else:
+            plt.plot(x, data)
+
         plt.show()
 
     def trajectory_2d(x, y, std_x=0, std_y=0):
-        plt.axvline(x=std_x)
-        plt.axhline(y=std_y)
+        plt.axvline(x=std_x, color='black')
+        plt.axhline(y=std_y, color='black')
         plt.plot(x, y)
         plt.show()
 
@@ -433,15 +477,20 @@ class Plot:
         data,
         time_interval=1,
         std_y=0, range_y=1,
-        fig_size=(12, 1)
+        fig_size=(12, 1),
     ):
         '''
         For Lorenz96.
         data is a 2-D array.
         '''
-        dims = np.shape(data)
+        if type(data) is tuple:
+            dims = np.shape(data[0])
+        else:
+            dims = np.shape(data)
+
         nt = dims[0]
         x = np.arange(dims[1])
+
         plot_num = np.arange(0, nt, time_interval)
         nplot = np.size(plot_num)
         print('Time slots:', plot_num)
@@ -455,17 +504,53 @@ class Plot:
 
         axs = axs.ravel()
 
-        for i in np.arange(nplot):
-            axs[i].plot(x, data[plot_num[i], :])
+        if type(data) is tuple:
+            for i in np.arange(nplot):
+                for d in data:
+                    axs[i].plot(x, d[plot_num[i], :])
+        else:
+            for i in np.arange(nplot):
+                axs[i].plot(x, data[plot_num[i], :])
 
         for ax in axs:
             ax.set_ylim([std_y-range_y, std_y+range_y])
+            ax.set_xlim([x.min(), x.max()])
             ax.axhline(y=std_y, color='black')
             plt.setp(ax.get_xticklabels(), visible=False)
             plt.setp(ax.get_yticklabels(), visible=False)
 
-        axs[nplot//2].set_ylabel("time (every 12 hr)")
+        axs[nplot//2].set_ylabel("time")
         axs[-1].set_xlabel("site number")
         plt.setp(axs[-1].get_xticklabels(), visible=True)
 
         plt.show()
+
+
+class Stat:
+
+    def RMSE(data_std, data_exp, target_dim=-1):
+        '''
+        data_std: 1-D or 2-D standard data set
+        data_exp: 1-D or 2-D experimental data set that to be verified
+        '''
+
+        if np.shape(data_exp) != np.shape(data_std):
+            sys.exit('ERROR: Data sets with different shapes!')
+
+        dim = len(np.shape(data_exp))
+
+        if dim == 1:
+            diff_square = (data_std - data_exp)**2
+            avg = np.average(diff_square)
+            root = np.sqrt(avg)
+
+        else:
+            diff_square = (data_std[target_dim] - data_exp[target_dim])**2
+            nt = np.shape(data_std)[0]
+            root = np.empty(nt)
+            for i in np.arange(nt):
+                diff_square = (data_std[i] - data_exp[i])**2
+                avg = np.average(diff_square)
+                root[i] = np.sqrt(avg)
+
+        return root
